@@ -714,18 +714,18 @@ while (還有未處理的行)
 
 由上面的說明可以看出，這個程式很自然地分成了若干片段：讀入新行、測試讀入的行、保存該行，其餘部份則是控制這個邏輯。
 
-因為這種劃分方式比較合理，所以可以按照這種方式撰寫程式碼。首先，我們需要設計一個獨立的函式 `getLine`，它會讀取輸入的下一行。我們可以讓 `getLine` 在讀取該行時回傳該行的長度，並且當遇到文件結尾 `EOF` 時回傳 0，由於 0 並不是一個有效的行長度（因為「一行」至少會存在一個換行字元 `\n`）這樣就可以很輕易地判定是否讀取完畢。
+因為這種劃分方式比較合理，所以可以按照這種方式撰寫程式碼。首先，我們需要設計一個獨立的函式 `get_line`，它會讀取輸入的下一行。我們可以讓 `get_line` 在讀取該行時回傳該行的長度，並且當遇到文件結尾 `EOF` 時回傳 0，由於 0 並不是一個有效的行長度（因為「一行」至少會存在一個換行字元 `\n`）這樣就可以很輕易地判定是否讀取完畢。
 
 當發現某個新讀入的行要比之前的最長行還要長時，就要把該行保存下來。我們需要另一個函式 `copy` 把新行複製到一個安全的位置。
 
-最後，我們在 `main` 函式中調用 `getLine` 與 `copy` 這兩個函式，即可完成程式碼：
+最後，我們在 `main` 函式中調用 `get_line` 與 `copy` 這兩個函式，即可完成程式碼：
 
 ```c
 #include <stdio.h>
 
 #define MAXLEN 1000 // maximum input line length
 
-int getline(char s[], int limit);
+int get_line(char s[], int limit);
 void copy(char to[], char from[]);
 
 int main() {
@@ -734,7 +734,7 @@ int main() {
     char line[MAXLEN];    // current input line
     char longest[MAXLEN]; // longest line saved here
 
-    while ((len = getline(line, MAXLEN)) > 0) {
+    while ((len = get_line(line, MAXLEN)) > 0) {
         if (len > max) {
             max = len;
             copy(longest, line);
@@ -744,7 +744,7 @@ int main() {
         puts(longest);
 }
 
-int getLine(char s[], int limit) {
+int get_line(char s[], int limit) {
     int c;
 
     for (int i = 0; i < limit-1 && (c = getchar()) != EOF && c != '\n'; ++i)
@@ -763,11 +763,11 @@ void copy(char to[], char from[]) {
 }
 ```
 
-在程式的開頭對 `getLine` 與 `copy` 兩個函式建立了原型，這裡假設它們都被存放在同一個檔案中。
+在程式的開頭對 `get_line` 與 `copy` 兩個函式建立了原型，這裡假設它們都被存放在同一個檔案中。
 
-`main` 與 `getLine` 通過一對參數及一個回傳值進行資料交換，在 `getLine` 函式中，兩個參數透過 `int getLine(char s[], int limit)` 宣告，第一個參數 `s` 為字元陣列，第二個 `limit` 為整數。
+`main` 與 `get_line` 通過一對參數及一個回傳值進行資料交換，在 `get_line` 函式中，兩個參數透過 `int get_line(char s[], int limit)` 宣告，第一個參數 `s` 為字元陣列，第二個 `limit` 為整數。
 
-`getLine` 函式中，會將 `'\0'` 字元插入到 `s` 的末尾，在 C 語言中這是一個字串結束的標記，`'\0'` 是一個逃脫字元，稱為 _空字元（Null Character）_ 其代表值為 0
+`get_line` 函式中，會將 `'\0'` 字元插入到 `s` 的末尾，在 C 語言中這是一個字串結束的標記，`'\0'` 是一個逃脫字元，稱為 _空字元（Null Character）_ 其代表值為 0
 
 舉例來說，在 C 語言中如果使用 `"Hello World"` 這樣的字串，其實等價於於以下字元陣列：
 
@@ -779,6 +779,6 @@ void copy(char to[], char from[]) {
 
 標準函式庫中的 `puts` 與 `printf("%s")` 函式中要求字元陣列必需符合字串的規範，且 `copy` 函式的實現也是依賴於輸入參數由 `'\0'` 結束的這一規則並將 `'\0'` 複製到輸出中（換句話說，空字元並不是輸入文本的一部份）
 
-值得一提的是，即使是上述這樣較小的程式，在傳遞參數時也會遇到一些麻煩的設計問題。例如，當讀入的行長度大於允許的最大值時，`main` 函式應該如何處理，`getLine` 函式的執行是安全的，無論是否達到換行字元，當陣列已滿時就該停止讀取字元。`main` 函式則可以透過測試行的長度以及檢查回傳備直的最後一個字元來判定當前行是否太長，然後再根據具體情況處理。此處為了簡化問題，這個部份我們暫且擱置。
+值得一提的是，即使是上述這樣較小的程式，在傳遞參數時也會遇到一些麻煩的設計問題。例如，當讀入的行長度大於允許的最大值時，`main` 函式應該如何處理，`get_line` 函式的執行是安全的，無論是否達到換行字元，當陣列已滿時就該停止讀取字元。`main` 函式則可以透過測試行的長度以及檢查回傳備直的最後一個字元來判定當前行是否太長，然後再根據具體情況處理。此處為了簡化問題，這個部份我們暫且擱置。
 
-呼叫 `getLine` 函式並無法預先知道輸入行的長度，因此 `getLine` 函式需要檢查是否 _溢出（Overflow）_。另一方面，調用 `copy` 函式的程式知道字串長度，因此該函式不需要進行錯誤檢查。
+呼叫 `get_line` 函式並無法預先知道輸入行的長度，因此 `get_line` 函式需要檢查是否 _溢出（Overflow）_。另一方面，調用 `copy` 函式的程式知道字串長度，因此該函式不需要進行錯誤檢查。
